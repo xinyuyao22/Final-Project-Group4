@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-#import lightgbm as lgb
+import lightgbm as lgb
 from sklearn.model_selection import KFold
 import warnings
 import time
@@ -10,6 +10,7 @@ import sys
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+import gc
 from sklearn.metrics import mean_squared_error
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.set_option('display.max_columns', 500)
@@ -42,20 +43,18 @@ def reduce_mem_usage(df, verbose=True):
     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
     return df
 
-new_transactions = pd.read_csv('../Final Project/new_merchant_transactions.csv',
-                               parse_dates=['purchase_date'])
-historical_transactions = pd.read_csv('../Final Project/historical_transactions.csv',
-                                      parse_dates=['purchase_date'])
-historical_transactions = reduce_mem_usage(historical_transactions)
-new_transactions = reduce_mem_usage(new_transactions)
+new_trans = pd.read_csv('new_merchant_transactions.csv', parse_dates=['purchase_date'])
+hist_trans = pd.read_csv('historical_transactions.csv', parse_dates=['purchase_date'])
+hist_trans = reduce_mem_usage(hist_trans)
+new_trans = reduce_mem_usage(new_trans)
 
 def binarize(df):
     for col in ['authorized_flag', 'category_1']:
         df[col] = df[col].map({'Y':1, 'N':0})
     return df
 
-historical_transactions = binarize(historical_transactions)
-new_transactions = binarize(new_transactions)
+hist_trans = binarize(hist_trans)
+new_trans = binarize(new_trans)
 
 train = pd.read_csv('../Final Project/train.csv', parse_dates=["first_active_month"])
 test = pd.read_csv('../Final Project/test.csv', parse_dates=["first_active_month"])
@@ -122,19 +121,91 @@ def missing_values_table(df):
     return mis_val_table_ren_columns
 
 # Missing values statistics
-print(missing_values_table(historical_transactions))
-print(missing_values_table(new_transactions))
+print(missing_values_table(hist_trans))
+print(missing_values_table(new_trans))
 print(missing_values_table(train))
 print(missing_values_table(test))
 
-for df in [historical_transactions,new_transactions]:
+for df in [hist_trans,new_trans]:
     for col in ['category_2', 'category_3', 'merchant_id']:
         print(col, list(df[col].unique()))
 
-for df in [historical_transactions,new_transactions]:
+for df in [hist_trans,new_trans]:
     df['category_2'].fillna(6.0,inplace=True)
     df['category_3'].fillna('D',inplace=True)
     df['merchant_id'].fillna('M_ID_na',inplace=True)
 
-historical_transactions['month_diff'] = ((datetime.date(2018, 2, 1) - historical_transactions['purchase_date'].dt.date).dt.days)//30
-new_transactions['month_diff'] = ((datetime.date(2018, 2, 1) - new_transactions['purchase_date'].dt.date).dt.days)//30
+hist_trans['month_diff'] = ((datetime.date(2018, 2, 1) - hist_trans['purchase_date'].dt.date).dt.days)//30
+new_trans['month_diff'] = ((datetime.date(2018, 2, 1) - new_trans['purchase_date'].dt.date).dt.days)//30
+
+def get_new_columns(name,aggs):
+    return [name + '_' + k + '_' + agg for k in aggs.keys() for agg in aggs[k]]
+
+for df in [hist_trans,new_trans]:
+    df['year'] = df['purchase_date'].dt.year
+    df['weekofyear'] = df['purchase_date'].dt.weekofyear
+    df['month'] = df['purchase_date'].dt.month
+    df['dayofweek'] = df['purchase_date'].dt.dayofweek
+    df['weekend'] = (df.purchase_date.dt.weekday >=5).astype(int)
+    df['hour'] = df['purchase_date'].dt.hour
+
+aggs = {}
+for col in ['month','hour','weekofyear','dayofweek','year','subsector_id','merchant_id','merchant_category_id']:
+    aggs[col] = ['nunique']
+
+aggs['purchase_amount'] = ['sum','max','min','mean','var']
+aggs['installments'] = ['sum','max','min','mean','var']
+aggs['purchase_date'] = ['max','min']
+aggs['month_lag'] = ['max','min','mean','var']
+aggs['month_diff'] = ['mean']
+aggs['authorized_flag'] = ['sum', 'mean']
+aggs['weekend'] = ['sum', 'mean']
+aggs['category_1'] = ['sum', 'mean']
+aggs['card_id'] = ['size']
+
+for col in ['category_2','category_3']:
+    hist_trans[col+'_mean'] = hist_trans.groupby([col])['purchase_amount'].transform('mean')
+    aggs[col+'_mean'] = ['mean']
+
+new_columns = get_new_columns('hist',aggs)
+hist_trans_group = hist_trans.groupby('card_id').agg(aggs)
+hist_trans_group.columns = new_columns
+hist_trans_group.reset_index(drop=False,inplace=True)
+hist_trans_group['hist_purchase_date_diff'] = (hist_trans_group['hist_purchase_date_max'] - hist_trans_group['hist_purchase_date_min']).dt.days
+hist_trans_group['hist_purchase_date_average'] = hist_trans_group['hist_purchase_date_diff']/hist_trans_group['hist_card_id_size']
+hist_trans_group['hist_purchase_date_uptonow'] = (datetime.datetime.today() - hist_trans_group['hist_purchase_date_max']).dt.days
+train = train.merge(hist_trans_group,on='card_id',how='left')
+test = test.merge(hist_trans_group,on='card_id',how='left')
+del hist_trans_group;gc.collect()
+
+aggs = {}
+for col in ['month','hour','weekofyear','dayofweek','year','subsector_id','merchant_id','merchant_category_id']:
+    aggs[col] = ['nunique']
+aggs['purchase_amount'] = ['sum','max','min','mean','var']
+aggs['installments'] = ['sum','max','min','mean','var']
+aggs['purchase_date'] = ['max','min']
+aggs['month_lag'] = ['max','min','mean','var']
+aggs['month_diff'] = ['mean']
+aggs['weekend'] = ['sum', 'mean']
+aggs['category_1'] = ['sum', 'mean']
+aggs['card_id'] = ['size']
+
+for col in ['category_2','category_3']:
+    new_trans[col+'_mean'] = new_trans.groupby([col])['purchase_amount'].transform('mean')
+    aggs[col+'_mean'] = ['mean']
+
+new_columns = get_new_columns('new_hist',aggs)
+hist_trans_group = new_trans.groupby('card_id').agg(aggs)
+hist_trans_group.columns = new_columns
+hist_trans_group.reset_index(drop=False,inplace=True)
+hist_trans_group['new_hist_purchase_date_diff'] = (hist_trans_group['new_hist_purchase_date_max'] - hist_trans_group['new_hist_purchase_date_min']).dt.days
+hist_trans_group['new_hist_purchase_date_average'] = hist_trans_group['new_hist_purchase_date_diff']/hist_trans_group['new_hist_card_id_size']
+hist_trans_group['new_hist_purchase_date_uptonow'] = (datetime.datetime.today() - hist_trans_group['new_hist_purchase_date_max']).dt.days
+train = train.merge(hist_trans_group,on='card_id',how='left')
+test = test.merge(hist_trans_group,on='card_id',how='left')
+del hist_trans_group;gc.collect()
+
+del hist_trans;gc.collect()
+del new_trans;gc.collect()
+train.head(5)
+
