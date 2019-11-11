@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import lightgbm as lgb
+#import lightgbm as lgb
 from sklearn.model_selection import KFold
 import warnings
 import time
