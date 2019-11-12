@@ -106,7 +106,6 @@ print(missing_values_table(train))
 print(missing_values_table(test))
 
 target = train['target']
-del train['target']
 plt.figure(figsize=(8,6))
 plt.scatter(range(train.shape[0]), np.sort(target.values))
 plt.xlabel('index', fontsize=12)
