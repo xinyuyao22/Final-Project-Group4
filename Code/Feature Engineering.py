@@ -227,36 +227,18 @@ print(final_group.head())
 
 def successive_aggregates(df, field1, field2):
     t = df.groupby(['card_id', field1])[field2].mean()
-    u = pd.DataFrame(t).reset_index().groupby('card_id')[field2].agg(['mean', 'min', 'max', 'std'])
+    u = pd.DataFrame(t).reset_index().groupby('card_id')[field2].agg(['min'])
     u.columns = [field1 + '_' + field2 + '_' + col for col in u.columns.values]
     u.reset_index(inplace=True)
     return u
 
-additional_fields = successive_aggregates(new_trans, 'category_1', 'purchase_amount')
-additional_fields = additional_fields.merge(successive_aggregates(new_trans, 'installments', 'purchase_amount'),
-                                            on = 'card_id', how='left')
+additional_fields = successive_aggregates(new_trans, 'installments', 'purchase_amount')
 additional_fields = additional_fields.merge(successive_aggregates(new_trans, 'city_id', 'purchase_amount'),
                                             on = 'card_id', how='left')
-additional_fields = additional_fields.merge(successive_aggregates(new_trans, 'category_1', 'installments'),
-                                            on = 'card_id', how='left')
 
-train = pd.merge(train, history, on='card_id', how='left')
-test = pd.merge(test, history, on='card_id', how='left')
-
-train = pd.merge(train, authorized, on='card_id', how='left')
-test = pd.merge(test, authorized, on='card_id', how='left')
-
-train = pd.merge(train, new, on='card_id', how='left')
-test = pd.merge(test, new, on='card_id', how='left')
-
-train = pd.merge(train, final_group, on='card_id', how='left')
-test = pd.merge(test, final_group, on='card_id', how='left')
-
-train = pd.merge(train, auth_mean, on='card_id', how='left')
-test = pd.merge(test, auth_mean, on='card_id', how='left')
-
-train = pd.merge(train, additional_fields, on='card_id', how='left')
-test = pd.merge(test, additional_fields, on='card_id', how='left')
+for df in [history, authorized, new, final_group, auth_mean, additional_fields]:
+    train = pd.merge(train, df, on='card_id', how='left')
+    test = pd.merge(test, df, on='card_id', how='left')
 
 train.to_csv('train_fea_eng.csv')
 test.to_csv('test_fea_eng.csv')
