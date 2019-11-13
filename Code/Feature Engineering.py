@@ -106,10 +106,11 @@ print(missing_values_table(train))
 print(missing_values_table(test))
 
 target = train['target']
-plt.figure(figsize=(8,6))
-plt.scatter(range(train.shape[0]), np.sort(target.values))
-plt.xlabel('index', fontsize=12)
-plt.ylabel('Loyalty Score', fontsize=12)
+plt.figure(figsize=(12, 5))
+plt.hist(target.values, bins=200)
+plt.title('Histogram target counts')
+plt.xlabel('Count')
+plt.ylabel('Target')
 plt.show()
 # We can see that some of the loyalty values are far apart (less than -30) compared to others. Let us just get their count.
 print((target<-30).sum())
@@ -193,14 +194,19 @@ def aggregate_transactions(history):
 
 history = aggregate_transactions(hist_trans)
 history.columns = ['hist_' + c if c != 'card_id' else c for c in history.columns]
+history.fillna(0, inplace=True)
+print(missing_values_table(history))
 print(history.head())
 
 authorized = aggregate_transactions(auth_trans)
 authorized.columns = ['auth_' + c if c != 'card_id' else c for c in authorized.columns]
+print(missing_values_table(authorized))
 print(authorized.head())
 
 new = aggregate_transactions(new_trans)
 new.columns = ['new_' + c if c != 'card_id' else c for c in new.columns]
+new.fillna(0, inplace=True)
+print(missing_values_table(new))
 print(new.head())
 
 def aggregate_per_month(history):
@@ -213,6 +219,7 @@ def aggregate_per_month(history):
     intermediate_group = grouped.agg(agg_func)
     intermediate_group.columns = ['_'.join(col).strip() for col in intermediate_group.columns.values]
     intermediate_group.reset_index(inplace=True)
+    intermediate_group.fillna(0, inplace=True)
 
     final_group = intermediate_group.groupby('card_id').agg(['mean', 'std'])
     final_group.columns = ['_'.join(col).strip() for col in final_group.columns.values]
@@ -223,6 +230,7 @@ def aggregate_per_month(history):
 
 # ___________________________________________________________
 final_group = aggregate_per_month(auth_trans)
+print(missing_values_table(final_group))
 print(final_group.head())
 
 def successive_aggregates(df, field1, field2):
@@ -240,5 +248,15 @@ for df in [history, authorized, new, final_group, auth_mean, additional_fields]:
     train = pd.merge(train, df, on='card_id', how='left')
     test = pd.merge(test, df, on='card_id', how='left')
 
-train.to_csv('train_fea_eng.csv')
-test.to_csv('test_fea_eng.csv')
+unimportant_features = ['hist_month_lag_std', 'hist_purchase_amount_max', 'hist_purchase_month_max', 'hist_purchase_month_min',
+                        'hist_purchase_month_std', 'purchase_amount_mean_mean']
+
+for df in [train, test]:
+    for col in unimportant_features:
+        df = df.drop(columns=[col], errors='ignore')
+
+print(missing_values_table(train))
+train.fillna(0, inplace=True)
+
+train.to_csv('train_fea_eng.csv', index=False)
+test.to_csv('test_fea_eng.csv', index=False)
