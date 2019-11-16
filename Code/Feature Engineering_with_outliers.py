@@ -8,7 +8,6 @@ import sys
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats
 from sklearn.metrics import mean_squared_error
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.set_option('display.max_columns', 500)
@@ -114,13 +113,8 @@ plt.xlabel('Count')
 plt.ylabel('Target')
 plt.show()
 # We can see that some of the loyalty values are far apart (less than -30) compared to others. Let us just get their count.
-print(target[np.abs(stats.zscore(train['target'])) > 3].count(), 'entries are outliers')
-print("% of outliers:", target[np.abs(stats.zscore(train['target'])) > 3].count()/target.shape[0])
-idx = train[np.abs(stats.zscore(train['target'])) > 3].index
-# idx = train[train['target'] < -18.5].index
-
-# Delete these row indexes from dataFrame
-train.drop(idx, inplace=True)
+print((target<-30).sum(), 'entries have target<-30')
+print("% of target<-30:", (target<-30).sum()/target.shape[0])
 
 cnt_srs = train['first_active_month'].dt.date.value_counts()
 cnt_srs = cnt_srs.sort_index()
@@ -267,5 +261,5 @@ for df in [train, test]:
 print(missing_values_table(train))
 train.fillna(0, inplace=True)
 
-train.to_csv('train_fea_eng.csv', index=False)
+train.to_csv('train_fea_eng_with_outliers.csv', index=False)
 test.to_csv('test_fea_eng.csv', index=False)
