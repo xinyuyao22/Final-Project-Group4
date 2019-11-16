@@ -35,15 +35,12 @@ from sklearn.base import BaseEstimator, RegressorMixin
 class MyFastLinearRegression(BaseEstimator, RegressorMixin):
     """The fast linear regression model (implemented using numpy array)"""
 
-    def __init__(self, n_iter=100, eta=10 ** -2, C=1, random_state=0):
+    def __init__(self, n_iter=100, eta=10 ** -2, random_state=0):
         # The number of iterations
         self.n_iter = n_iter
 
         # The learning rate
         self.eta = eta
-
-        # The regularization parameter
-        self.C = C
 
         # The random state
         self.random_state = random_state
@@ -85,7 +82,7 @@ class MyFastLinearRegression(BaseEstimator, RegressorMixin):
             self.cost.append(mse)
 
             # Update the weight of features x1, x2, ..., xn
-            self.w[1:] += self.eta * (2 * np.matmul(X.T, errors) / X.shape[0] - self.C * np.sign(self.w[1:]))
+            self.w[1:] += self.eta * (2 * np.matmul(X.T, errors) / X.shape[0])
 
             # Update the weight of the dummy feature, x0
             self.w[0] += self.eta * 2 * errors.sum() / X.shape[0]
@@ -135,10 +132,8 @@ from sklearn.model_selection import GridSearchCV
 param_grids = {}
 
 eta_range = [10 ** i for i in range(-4, 0)]
-C_range = [10 ** i for i in range(-7, 2)]
 
-param_grid = [{'estimator__eta': eta_range,
-               'estimator__C': C_range}]
+param_grid = [{'estimator__eta': eta_range}]
 
 param_grids['mylr'] = param_grid
 
