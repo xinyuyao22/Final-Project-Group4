@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
@@ -20,12 +21,9 @@ print(data['target'].min())
 print(data['target'].max())
 
 
-bins = [-34,-33,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,
-       -14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-names = [-33,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,
-       -14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-new_target = pd.cut(data['target'], bins, labels=names)
-data['new_target'] = new_target
+bins = np.arange(-12.5, 12.5, 1)
+names = np.arange(-12, 12, 1)
+data['new_target'] = pd.cut(data['target'], bins, labels=names)
 #data['new_target'] = pd.DataFrame(new_target, index = data.index)
 #category = pd.cut(data.target,bin)
 #category = category.to_frame()
@@ -34,11 +32,11 @@ data['new_target'] = new_target
 
 
 X = data.drop(columns = (['new_target','target','first_active_month','card_id']))
-#Y = data[['new_target']]
-Y = data.values[:, -1]
+Y = data[['new_target']]
+#Y = data.values[:, -1]
 #lab_enc = preprocessing.LabelEncoder()
 #training_scores_encoded = lab_enc.fit_transform(Y)
-Y=Y.astype('int')
+#Y=Y.astype('int')
 #Y=Y.astype('float')
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, random_state=0)
 
@@ -49,7 +47,7 @@ clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 y_pred_score = clf.predict_proba(X_test)
 
-#print (mean_squared_error(y_test, y_pred))
+print (mean_squared_error(y_test, y_pred))
 
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 #print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
