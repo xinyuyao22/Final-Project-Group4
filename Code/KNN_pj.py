@@ -15,13 +15,10 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-data = pd.read_csv('train_fea_eng.csv')
-print (data.head())
-bins = np.arange(-12.5, 12.5, 1)
-names = np.arange(-12, 12, 1)
-data['new_target'] = pd.cut(data['target'], bins, labels=names)
+data = pd.read_csv('feature_select.csv')
 
-X = data.drop(columns = (['new_target','target','first_active_month','card_id']))
+
+X = data.drop(columns = (['new_target']))
 Y = data['new_target']
 #%%-----------------------------------------------------------------------
 # data preprocessing

@@ -64,10 +64,12 @@ plt.show()
 #%%-----------------------------------------------------------------------
 #select features to perform training with random forest with k columns
 # select the training dataset on k-features
-newX_train = X_train[:, clf.feature_importances_.argsort()[::-1][:15]]
-
-# select the testing dataset on k-features
-newX_test = X_test[:, clf.feature_importances_.argsort()[::-1][:15]]
+newX_train = X_train.iloc[:, clf.feature_importances_.argsort()[::-1][:15]]
+feature_select = data.iloc[:, clf.feature_importances_.argsort()[::-1][:25]]
+feature_select['new_target']= data['new_target']
+feature_select.to_csv('feature_select.csv', index=False)
+# selrect the testing dataset on k-features
+newX_test = X_test.iloc[:, clf.feature_importances_.argsort()[::-1][:15]]
 
 #%%-----------------------------------------------------------------------
 #perform training with random forest with k columns
@@ -102,7 +104,7 @@ print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 print("\n")
 
-print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
+#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
 
 # calculate metrics entropy model
 print("\n")
@@ -112,7 +114,7 @@ print(classification_report(y_test,y_pred_k_features))
 print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred_k_features) * 100)
 print("\n")
-print("ROC_AUC : ", roc_auc_score(y_test,y_pred_k_features_score[:,1]) * 100)
+#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_k_features_score[:,1]) * 100)
 
 # %%-----------------------------------------------------------------------
 # confusion matrix for gini model
