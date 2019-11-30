@@ -15,15 +15,8 @@ from sklearn.metrics import mean_squared_error
 
 
 
-data = pd.read_csv('train_fea_eng.csv',sep = ',')
+data = pd.read_csv('feature_select.csv',sep = ',')
 
-print(data['target'].min())
-print(data['target'].max())
-
-
-bins = np.arange(-12.5, 12.5, 1)
-names = np.arange(-12, 12, 1)
-data['new_target'] = pd.cut(data['target'], bins, labels=names)
 #data['new_target'] = pd.DataFrame(new_target, index = data.index)
 #category = pd.cut(data.target,bin)
 #category = category.to_frame()
@@ -31,7 +24,7 @@ data['new_target'] = pd.cut(data['target'], bins, labels=names)
 #data['new_target'] = category
 
 
-X = data.drop(columns = (['new_target','target','first_active_month','card_id']))
+X = data.drop(columns = (['new_target']))
 Y = data[['new_target']]
 #Y = data.values[:, -1]
 #lab_enc = preprocessing.LabelEncoder()
