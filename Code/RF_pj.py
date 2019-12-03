@@ -10,6 +10,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import mean_squared_error
 
 
 #%%-----------------------------------------------------------------------
@@ -20,15 +21,6 @@ bins = np.arange(-12.5, 12.5, 1)
 names = np.arange(-12, 12, 1)
 data['new_target'] = pd.cut(data['target'], bins, labels=names)
 
-#%%-----------------------------------------------------------------------
-#clean the dataset
-
-
-# drop unnnecessary columns
-#data.drop(['target','first_active_month','card_id'], axis=1, inplace=True)
-
-# encode target variable
-#data['new_target'] = data['new_target'].map({'M': 1, 'B': 0})
 #%%-----------------------------------------------------------------------
 #split the dataset
 # separate the predictor and target variable
@@ -59,6 +51,7 @@ f_importances.plot(x='Features', y='Importance', kind='bar', figsize=(16, 9), ro
 
 # show the plot
 plt.tight_layout()
+#f_importances.to_csv('RF_feature.csv')
 plt.show()
 
 #%%-----------------------------------------------------------------------
@@ -104,7 +97,7 @@ print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 print("\n")
 
-#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 
 # calculate metrics entropy model
 print("\n")
@@ -113,8 +106,8 @@ print("Classification Report: ")
 print(classification_report(y_test,y_pred_k_features))
 print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred_k_features) * 100)
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 print("\n")
-#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_k_features_score[:,1]) * 100)
 
 # %%-----------------------------------------------------------------------
 # confusion matrix for gini model
@@ -124,17 +117,15 @@ class_names = data['new_target'].unique()
 
 df_cm = pd.DataFrame(conf_matrix, index=class_names, columns=class_names )
 
-plt.figure(figsize=(5,5))
-
+plt.figure(figsize=(25,25))
 hm = sns.heatmap(df_cm, cbar=False, annot=True, square=True, fmt='d', annot_kws={'size': 20}, yticklabels=df_cm.columns, xticklabels=df_cm.columns)
-
-hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=0, ha='right', fontsize=20)
-hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=0, ha='right', fontsize=20)
-plt.ylabel('True label',fontsize=20)
-plt.xlabel('Predicted label',fontsize=20)
-# Show heat map
+hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=45, ha='right', fontsize=50)
+hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=50)
+plt.ylabel('True label',fontsize=100)
+plt.xlabel('Predicted label',fontsize=100)
 plt.tight_layout()
-
+df_cm.to_csv('RF_gini_cm.csv')
+plt.show()
 
 # %%-----------------------------------------------------------------------
 
@@ -146,15 +137,12 @@ class_names = data['new_target'].unique()
 
 df_cm = pd.DataFrame(conf_matrix, index=class_names, columns=class_names )
 
-plt.figure(figsize=(5,5))
-
+plt.figure(figsize=(25,25))
 hm = sns.heatmap(df_cm, cbar=False, annot=True, square=True, fmt='d', annot_kws={'size': 20}, yticklabels=df_cm.columns, xticklabels=df_cm.columns)
-
-hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=0, ha='right', fontsize=20)
-hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=0, ha='right', fontsize=20)
-plt.ylabel('True label',fontsize=20)
-plt.xlabel('Predicted label',fontsize=20)
-# Show heat map
+hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=45, ha='right', fontsize=50)
+hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=50)
+plt.ylabel('True label',fontsize=100)
+plt.xlabel('Predicted label',fontsize=100)
 plt.tight_layout()
+df_cm.to_csv('RF_entropy_cm.csv')
 plt.show()
-

@@ -70,7 +70,7 @@ print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 print("\n")
 
-print (mean_squared_error(y_test, y_pred))
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 
 #%%-----------------------------------------------------------------------
 # confusion matrix

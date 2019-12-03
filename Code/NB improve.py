@@ -35,11 +35,9 @@ clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 y_pred_score = clf.predict_proba(X_test)
 
-print (mean_squared_error(y_test, y_pred))
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
-#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
-
 # confusion matrix
 
 
