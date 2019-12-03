@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.set_option('display.max_columns', 500)
 
-train = pd.read_csv('train_fea_eng.csv', parse_dates=["first_active_month"])
+train = pd.read_csv('train_fea_eng.csv')
 # test = pd.read_csv('test_fea_eng.csv', parse_dates=["first_active_month"])
 
 # Check NA
@@ -28,6 +28,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 from sklearn.preprocessing import StandardScaler
 
 ss = StandardScaler()
+y = ss.fit_transform(y.reshape(-1, 1)).reshape(-1)
 y_train = ss.fit_transform(y_train.reshape(-1, 1)).reshape(-1) # .reshape(-1) transform into array
 
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -41,6 +42,9 @@ class MyFastLinearRegression(BaseEstimator, RegressorMixin):
 
         # The learning rate
         self.eta = eta
+
+        # The regularization parameter
+        #self.C = C
 
         # The random state
         self.random_state = random_state
@@ -116,9 +120,8 @@ class MyFastLinearRegression(BaseEstimator, RegressorMixin):
         """
         return self.net_input(X)
 
-from sklearn.preprocessing import StandardScaler
-
 estimators = {'mylr': MyFastLinearRegression(random_state=0)}
+
 from sklearn.pipeline import Pipeline
 
 pipe_estimators = {}
@@ -132,6 +135,7 @@ from sklearn.model_selection import GridSearchCV
 param_grids = {}
 
 eta_range = [10 ** i for i in range(-4, 0)]
+#C_range = [10 ** i for i in range(-4, 5)]
 
 param_grid = [{'estimator__eta': eta_range}]
 
@@ -151,30 +155,16 @@ for name in pipe_estimators.keys():
                                random_state=0),
                       return_train_score=True)
 
-    gs = gs.fit(X_train, y_train)
+    '''
+    All scorer objects follow the convention that higher return values are better than lower return values. Thus metrics which
+    measure the distance between the model and the data, like metrics.mean_squared_error, are available as neg_mean_squared_error
+    which return the negated value of the metric.
+    '''
+
+    gs = gs.fit(X, y)
 
     # Update best_score_param_estimators
     best_score_param_estimators.append([gs.best_score_, gs.best_params_, gs.best_estimator_])
-
-    # Sort cv_results in ascending order of 'rank_test_score' and 'std_test_score'
-    cv_results = pd.DataFrame.from_dict(gs.cv_results_).sort_values(by=['rank_test_score', 'std_test_score'])
-
-    # Get the important columns in cv_results
-    important_columns = ['rank_test_score',
-                         'mean_test_score',
-                         'std_test_score',
-                         'mean_train_score',
-                         'std_train_score',
-                         'mean_fit_time',
-                         'std_fit_time',
-                         'mean_score_time',
-                         'std_score_time']
-
-    # Move the important columns ahead
-    cv_results = cv_results[important_columns + sorted(list(set(cv_results.columns) - set(important_columns)))]
-
-    # Write cv_results file
-    cv_results.to_csv(path_or_buf=name + '_cv_results.csv', index=False)
 
 best_score, best_params, best_estimator = best_score_param_estimators[0]
 
@@ -185,6 +175,8 @@ print('%-15s' % 'best_params:'.format(20), best_params, end='\n\n')
 # Get the best estimator
 best_estimator = best_score_param_estimators[0][2]
 
+best_estimator = best_estimator.fit(X_train, y_train)
+
 # Predict the target value using the best estimator
 y_pred = best_estimator.predict(X_test)
 
@@ -192,5 +184,8 @@ y_pred = best_estimator.predict(X_test)
 y_pred = ss.inverse_transform(y_pred)
 
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
-print('Mean_squared_error', mean_squared_error(y_test, y_pred))
+
+print('Mean_squared_error:', mean_squared_error(y_test, y_pred, multioutput='uniform_average'))
+print('r2_score:', r2_score(y_test, y_pred, multioutput='variance_weighted'))
