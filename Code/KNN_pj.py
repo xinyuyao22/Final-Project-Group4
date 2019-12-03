@@ -14,6 +14,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
+from sklearn.metrics import mean_squared_error
+
 
 data = pd.read_csv('feature_select.csv')
 
@@ -67,6 +69,8 @@ print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 print("\n")
 
+print (mean_squared_error(y_test, y_pred))
+
 #%%-----------------------------------------------------------------------
 # confusion matrix
 
@@ -76,14 +80,6 @@ class_names = data['new_target'].unique()
 
 df_cm = pd.DataFrame(conf_matrix, index=class_names, columns=class_names )
 
-plt.figure(figsize=(5,5))
-hm = sns.heatmap(df_cm, cbar=False, annot=True, square=True, fmt='d', annot_kws={'size': 20}, yticklabels=df_cm.columns, xticklabels=df_cm.columns)
-hm.yaxis.set_ticklabels(hm.yaxis.get_ticklabels(), rotation=45, ha='right', fontsize=10)
-hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=10)
-plt.ylabel('True label',fontsize=20)
-plt.xlabel('Predicted label',fontsize=20)
-plt.tight_layout()
-plt.show()
 
 plt.figure(figsize=(25,25))
 hm = sns.heatmap(df_cm, cbar=False, annot=True, square=True, fmt='d', annot_kws={'size': 20}, yticklabels=df_cm.columns, xticklabels=df_cm.columns)
@@ -92,4 +88,5 @@ hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', font
 plt.ylabel('True label',fontsize=100)
 plt.xlabel('Predicted label',fontsize=100)
 plt.tight_layout()
+df_cm.to_csv('KNN_cm.csv')
 plt.show()

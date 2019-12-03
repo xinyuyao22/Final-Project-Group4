@@ -22,15 +22,6 @@ names = np.arange(-12, 12, 4)
 data['new_target'] = pd.cut(data['target'], bins, labels=names)
 
 #%%-----------------------------------------------------------------------
-#clean the dataset
-
-
-# drop unnnecessary columns
-#data.drop(['target','first_active_month','card_id'], axis=1, inplace=True)
-
-# encode target variable
-#data['new_target'] = data['new_target'].map({'M': 1, 'B': 0})
-#%%-----------------------------------------------------------------------
 #split the dataset
 # separate the predictor and target variable
 X = data.drop(columns = (['new_target','target','first_active_month','card_id']))
@@ -106,8 +97,7 @@ print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred) * 100)
 print("\n")
 
-print (mean_squared_error(y_test, y_pred))
-#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_score[:,1]) * 100)
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 
 # calculate metrics entropy model
 print("\n")
@@ -117,8 +107,7 @@ print(classification_report(y_test,y_pred_k_features))
 print("\n")
 print("Accuracy : ", accuracy_score(y_test, y_pred_k_features) * 100)
 print("\n")
-#print("ROC_AUC : ", roc_auc_score(y_test,y_pred_k_features_score[:,1]) * 100)
-
+print ('Mean_squared_error:', mean_squared_error(y_test, y_pred))
 # %%-----------------------------------------------------------------------
 # confusion matrix for gini model
 conf_matrix = confusion_matrix(y_test, y_pred)
@@ -134,11 +123,10 @@ hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', font
 plt.ylabel('True label',fontsize=100)
 plt.xlabel('Predicted label',fontsize=100)
 plt.tight_layout()
-#df_cm.to_csv('RF_gini_cm.csv')
+df_cm.to_csv('RF_gini_cm_improve.csv')
 plt.show()
 
 # %%-----------------------------------------------------------------------
-
 # confusion matrix for entropy model
 
 conf_matrix = confusion_matrix(y_test, y_pred_k_features)
@@ -154,5 +142,5 @@ hm.xaxis.set_ticklabels(hm.xaxis.get_ticklabels(), rotation=45, ha='right', font
 plt.ylabel('True label',fontsize=100)
 plt.xlabel('Predicted label',fontsize=100)
 plt.tight_layout()
-df_cm.to_csv('RF_gini_cm_improve.csv')
+df_cm.to_csv('RF_entropy_cm_improve.csv')
 plt.show()
