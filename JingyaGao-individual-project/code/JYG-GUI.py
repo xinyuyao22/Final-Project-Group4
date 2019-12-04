@@ -408,7 +408,7 @@ class SVM(QMainWindow):
         Z = self.clf.predict(np.c_[xx.ravel(), yy.ravel()])
         Z = Z.reshape(xx.shape)
 
-        color = ["#F1948A", "#BB8FCE", "#85C1E9", "#58D68D", "#F5B041", "#CACFD2", "#5D6D7E"]
+        color = ["#E74C3C", "#8E44AD", "#3498DB", "#27AE60", "#F1C40F", "#E67E22", "#BDC3C7"]
         self.ax3.scatter(data.x1, y=data.x2, c=y_pre)
         self.ax3.contour(xx, yy, Z, colors=color, alpha=0.2)
         self.ax3.set_xlabel("Label for X")

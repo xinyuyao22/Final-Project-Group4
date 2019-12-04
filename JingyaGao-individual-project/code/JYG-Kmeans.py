@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 data0 = pd.read_csv('newData_select.csv')
 data = data0.sample(frac=0.01, random_state=23)
 
-X = data[["auth_purchase_month_mean", "auth_purchase_month_std"]]
+X = data[["purchase_amount_count_std", "auth_purchase_month_std"]]
 y = data['new_target']
 X = pd.DataFrame(X)
 y = pd.DataFrame(y)
