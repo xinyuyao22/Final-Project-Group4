@@ -23,7 +23,9 @@ import numpy as np
 #----------------------------------------------------------------------
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import  QWidget,QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton, QAction, QComboBox, QLabel,
+                             QGridLayout, QCheckBox, QGroupBox, QVBoxLayout, QHBoxLayout, QLineEdit, QPlainTextEdit)
+
 
 
 #::------------------------------------------------------------------------------------
@@ -146,51 +148,23 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 class features(QMainWindow):
+    send_fig = pyqtSignal(str)
     def __init__(self):
         super(features, self).__init__()
         self.setWindowTitle("Feature Importance")
         self.initUi()
 
     def initUi(self):
-        #::--------------------------------------------------------------
-        #  We create the type of layout QVBoxLayout (Vertical Layout )
-        #  This type of layout comes from QWidget
-        #::--------------------------------------------------------------
-        self.main_widget = QWidget(self)
-        self.layout = QVBoxLayout(self.main_widget)  # Creates vertical layout
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        lay = QVBoxLayout(self.central_widget)
 
-        #::----------------------------------------------------------------
-        #  Creates the containers for the graphic
-        self.fig = Figure()
-        self.ax1 = self.fig.add_subplot(111)
-        self.canvas = FigureCanvas(self.fig)
+        label = QLabel(self)
+        pixmap = QPixmap('RF_features.png')
+        label.setPixmap(pixmap)
+        self.resize(pixmap.width(), pixmap.height())
 
-        self.canvas.setSizePolicy(QSizePolicy.Expanding,
-                                  QSizePolicy.Expanding)
-
-        self.canvas.updateGeometry()
-
-        fi = pd.read_csv('RF_feature.csv')
-
-        X_1 = fi.iloc[:, 0]
-        y_1 = fi.iloc[:, 1]
-
-        self.ax1.bar(X_1, y_1)
-
-        vtitle = "Example of graph"
-        self.ax1.set_title(vtitle)
-        self.ax1.set_xticklabels(X_1)
-        self.ax1.grid(True)
-
-        self.fig.tight_layout()
-        self.fig.canvas.draw_idle()
-
-        self.layout.addWidget(self.canvas)
-
-        self.setGeometry(300, 300, 250, 150)
-
-        self.setCentralWidget(self.main_widget)  # Creates the window with all the elements
-        self.resize(500, 450)  # Resize the window
+        lay.addWidget(label)
         self.show()
 
 class GraphWParamsClass(QMainWindow):
