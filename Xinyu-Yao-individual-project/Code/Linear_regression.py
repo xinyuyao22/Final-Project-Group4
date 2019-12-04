@@ -179,5 +179,6 @@ y_pred = ss.inverse_transform(y_pred)
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
+
 print('Mean_squared_error:', mean_squared_error(y_test, y_pred, multioutput='uniform_average'))
 print('r2_score:', r2_score(y_test, y_pred, multioutput='variance_weighted'))

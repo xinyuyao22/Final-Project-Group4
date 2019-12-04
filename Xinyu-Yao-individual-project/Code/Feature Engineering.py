@@ -85,10 +85,6 @@ print(missing_values_table(train))
 print(missing_values_table(test))
 
 for df in [hist_trans,new_trans]:
-    for col in ['category_2', 'category_3']:
-        print(col, list(df[col].unique()))
-
-for df in [hist_trans,new_trans]:
     df['category_2'].fillna(6.0,inplace=True)
     df['category_3'].fillna('D',inplace=True)
     df['merchant_id'].fillna('M_ID_na',inplace=True)
@@ -150,6 +146,10 @@ plt.show()
 
 train['elapsed_time'] = (datetime.date(2018, 2, 1) - train['first_active_month'].dt.date).dt.days
 test['elapsed_time'] = (datetime.date(2018, 2, 1) - test['first_active_month'].dt.date).dt.days
+
+for df in [hist_trans,new_trans]:
+    for col in ['category_2', 'category_3']:
+        print(col, list(df[col].unique()))
 
 hist_trans['month_diff'] = ((datetime.date(2018, 2, 1) - hist_trans['purchase_date'].dt.date).dt.days)//30
 hist_trans['month_diff'] += hist_trans['month_lag']

@@ -4,7 +4,9 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QMenu, QApplication
 
 from PyQt5.QtWidgets import QSizePolicy
 
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import QCheckBox    # checkbox
+from PyQt5.QtWidgets import QPushButton  # pushbutton
+from PyQt5.QtWidgets import QLineEdit    # Lineedit
 from PyQt5.QtWidgets import QRadioButton # Radio Buttons
 from PyQt5.QtWidgets import QGroupBox    # Group Box
 
@@ -22,9 +24,12 @@ import numpy as np
 
 #----------------------------------------------------------------------
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import  QWidget,QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QMessageBox
 
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import Qt  # Control status
+from PyQt5.QtWidgets import  QWidget,QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
 
 #::------------------------------------------------------------------------------------
 #:: Class: Graphic with Params
@@ -144,54 +149,6 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
             texts.append(text)
 
     return texts
-
-class features(QMainWindow):
-    def __init__(self):
-        super(features, self).__init__()
-        self.setWindowTitle("Feature Importance")
-        self.initUi()
-
-    def initUi(self):
-        #::--------------------------------------------------------------
-        #  We create the type of layout QVBoxLayout (Vertical Layout )
-        #  This type of layout comes from QWidget
-        #::--------------------------------------------------------------
-        self.main_widget = QWidget(self)
-        self.layout = QVBoxLayout(self.main_widget)  # Creates vertical layout
-
-        #::----------------------------------------------------------------
-        #  Creates the containers for the graphic
-        self.fig = Figure()
-        self.ax1 = self.fig.add_subplot(111)
-        self.canvas = FigureCanvas(self.fig)
-
-        self.canvas.setSizePolicy(QSizePolicy.Expanding,
-                                  QSizePolicy.Expanding)
-
-        self.canvas.updateGeometry()
-
-        fi = pd.read_csv('RF_feature.csv')
-
-        X_1 = fi.iloc[:, 0]
-        y_1 = fi.iloc[:, 1]
-
-        self.ax1.bar(X_1, y_1)
-
-        vtitle = "Example of graph"
-        self.ax1.set_title(vtitle)
-        self.ax1.set_xticklabels(X_1)
-        self.ax1.grid(True)
-
-        self.fig.tight_layout()
-        self.fig.canvas.draw_idle()
-
-        self.layout.addWidget(self.canvas)
-
-        self.setGeometry(300, 300, 250, 150)
-
-        self.setCentralWidget(self.main_widget)  # Creates the window with all the elements
-        self.resize(500, 450)  # Resize the window
-        self.show()
 
 class GraphWParamsClass(QMainWindow):
     send_fig = pyqtSignal(str)  # To manage the signals PyQT manages the communication
@@ -791,6 +748,134 @@ class KNN(QMainWindow):
         # show the plot
         self.fig.tight_layout()
         self.fig.canvas.draw_idle()
+
+class SVM(QMainWindow):
+    send_fig = pyqtSignal(str)  # To manage the signals PyQT manages the communication
+
+    def __init__(self):
+        #::--------------------------------------------------------
+        # Initialize the values of the class
+        # Here the class inherits all the attributes and methods from the QMainWindow
+        #::--------------------------------------------------------
+        super(SVM, self).__init__()
+
+        self.Title = 'Title : Support Vector Machine '
+        self.initUi()
+
+    def initUi(self):
+        #::--------------------------------------------------------------
+        #  We create the type of layout QVBoxLayout (Vertical Layout )
+        #  This type of layout comes from QWidget
+        #::--------------------------------------------------------------
+        self.v = "24 Categories"
+        self.setWindowTitle(self.Title)
+        self.main_widget = QWidget(self)
+        self.layout = QVBoxLayout(self.main_widget)   # Creates vertical layout
+
+        self.groupBox1 = QGroupBox('Number of Categories')
+        self.groupBox1Layout = QHBoxLayout()
+        self.groupBox1.setLayout(self.groupBox1Layout)
+
+        self.groupBox2 = QGroupBox('Accuracy and MSE')
+        self.groupBox2Layout = QGridLayout()
+        self.groupBox2.setLayout(self.groupBox2Layout)
+
+        self.label1 = QLabel("Accuracy: ")
+        self.label2 = QLabel("MSE: ")
+        self.label3 = QLabel("Accuracy: ")
+        #self.label4 = QLabel("MSE: 0.05")
+
+        self.groupBox2Layout.addWidget(self.label1, 0, 0)
+        self.groupBox2Layout.addWidget(self.label2, 1, 0)
+        self.groupBox2Layout.addWidget(self.label3, 0, 1)
+        #self.groupBox2Layout.addWidget(self.label4, 1, 1)
+
+        self.groupBox3 = QGroupBox('Graphic')
+        self.groupBox3Layout = QVBoxLayout()
+        self.groupBox3.setLayout(self.groupBox3Layout)
+
+        # Radio buttons are create to be added to the second group
+
+        self.b1 = QRadioButton("24 Categories")
+        self.b1.setChecked(True)
+        self.b1.toggled.connect(self.onClicked)
+
+        self.b2 = QRadioButton("3 Categories")
+        self.b2.toggled.connect(self.onClicked)
+
+        self.buttonlabel = QLabel(self.v+' is selected')
+
+        self.groupBox1Layout.addWidget(self.b1)
+        self.groupBox1Layout.addWidget(self.b2)
+        self.groupBox1Layout.addWidget(self.buttonlabel)
+
+        # figure and canvas figure to draw the graph is created to
+        self.fig = Figure()
+        self.ax1 = self.fig.add_subplot(111)
+        self.canvas = FigureCanvas(self.fig)
+
+        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.canvas.updateGeometry()
+
+        # Canvas is added to the third group box
+        self.groupBox3Layout.addWidget(self.canvas)
+
+        # Adding to the main layout the groupboxes
+        self.layout.addWidget(self.groupBox1)
+        self.layout.addWidget(self.groupBox2)
+        self.layout.addWidget(self.groupBox3)
+
+        self.setCentralWidget(self.main_widget)       # Creates the window with all the elements
+        self.resize(600, 500)                         # Resize the window
+        self.onClicked()
+
+
+    def onClicked(self):
+
+        # Figure is cleared to create the new graph with the choosen parameters
+        self.ax1.clear()
+
+        # the buttons are inspect to indicate which one is checked.
+        # vcolor is assigned the chosen color
+        if self.b1.isChecked():
+            self.v = self.b1.text()
+            df_cm = pd.read_csv('SVM_cm.csv')
+            im = self.ax1.imshow(df_cm)
+
+            # We want to show all ticks...
+            self.ax1.set_xticks(np.arange(1, df_cm.shape[0] + 1))
+            self.ax1.set_yticks(np.arange(df_cm.shape[0]))
+            # ... and label them with the respective list entries
+            self.ax1.set_xticklabels(np.arange(-12, 12))
+            self.ax1.set_yticklabels(np.arange(-12, 12))
+
+            # Rotate the tick labels and set their alignment.
+            plt.setp(self.ax1.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+            # Loop over data dimensions and create text annotations.
+            for i in range(df_cm.shape[0]):
+                for j in range(1, df_cm.shape[0] + 1):
+                    text = self.ax1.text(j, i, df_cm.iloc[i, j],
+                                         ha="center", va="center", color="w", fontsize=6)
+            vtitle = "Confusion Matrix"
+            self.ax1.set_title(vtitle)
+            self.ax1.set_xlabel('Predicted label', fontsize=10)
+            self.ax1.set_ylabel('True label', fontsize=10)
+
+        if self.b2.isChecked():
+            self.v = self.b2.text()
+            df_cm = pd.read_csv('SVM_cm_improve2.csv')
+            im = heatmap(df_cm.iloc[:, 1:df_cm.shape[0] + 1], ['[-12, -4)', '[-4, 4)', '[4, 12)'],
+                         ['[-12, -4)', '[-4, 4)', '[4, 12)'], ax=self.ax1)
+            texts = annotate_heatmap(im, valfmt="{x:.1f}")
+
+        # the label that displays the selected option
+        self.buttonlabel.setText(self.v + ' is selected')
+
+        # show the plot
+        self.fig.tight_layout()
+        self.fig.canvas.draw_idle()
 #::-------------------------------------------------------------
 #:: Definition of a Class for the main manu in the application
 #::-------------------------------------------------------------
@@ -863,6 +948,7 @@ class Menu(QMainWindow):
         #::------------------------------------------------------------
         #:: Add code to include radio buttons  to implement an action upon request
         #::------------------------------------------------------------
+
         exampleGWParams =  QAction("Histogram Target Count ", self)
         exampleGWParams.setStatusTip('Example of Graphic with parameters')
         exampleGWParams.triggered.connect(self.ExampleGraphWParams)
@@ -888,11 +974,11 @@ class Menu(QMainWindow):
 
         exampleWin.addAction(exampleGraphic2)
 
-        EDA1Button = QAction("Features", self)
-        EDA1Button.setStatusTip('Presents the initial datasets')
-        EDA1Button.triggered.connect(self.EDA1)
+        exampleGraphic5 = QAction("Support Vector Machine", self)
+        exampleGraphic5.setStatusTip('Example of Graphic')
+        exampleGraphic5.triggered.connect(self.SVM)
 
-        exampleWin.addAction(EDA1Button)
+        exampleWin.addAction(exampleGraphic5)
 
         exampleGraphic4 = QAction("K-Nearest Neighbor", self)
         exampleGraphic4.setStatusTip('Example of Graphic')
@@ -913,11 +999,6 @@ class Menu(QMainWindow):
 
         #:: This line shows the windows
         self.show()
-
-    def EDA1(self):
-        dialog = features()
-        self.dialogs.append(dialog)
-        dialog.show()
 
     def ExampleGraphWParams(self):
         dialog = GraphWParamsClass()
@@ -948,9 +1029,15 @@ class Menu(QMainWindow):
         dialog = KNN()
         self.dialogs.append(dialog) # Apppends to the list of dialogs
         dialog.show()
+
+    def SVM(self):
+        dialog = SVM()
+        self.dialogs.append(dialog) # Apppends to the list of dialogs
+        dialog.show()
 #::------------------------
 #:: Application starts here
 #::------------------------
+
 def main():
     app = QApplication(sys.argv)  # creates the PyQt5 application
     mn = Menu()  # Cretes the menu
