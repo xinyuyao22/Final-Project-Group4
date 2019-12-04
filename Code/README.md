@@ -5,4 +5,4 @@ This README file should explain what order codes need to be run in (e.g., codes 
 ##3 Random forest.py
 ##4 K-nearest neighbor.py
 ##5 Naive Bayes.py
-##6 Use "newData_select.csv" to run JYG-GUI.py (models have already in this .py file)
+##6 Use "newData_select.csv", "1-features.png" and "enter.png" to run JYG-GUI.py (models have already in this .py file)
